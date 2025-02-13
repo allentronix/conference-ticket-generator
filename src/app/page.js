@@ -10,7 +10,9 @@ import Head from "next/head";
 const schema = yup.object().shape({
   fullName: yup.string().required("Full Name is required"),
   email: yup.string().email("Invalid email").required("Email is required"),
-  avatar: yup.mixed().required("Avatar is required"),
+  avatar: yup.mixed().test("fileRequired", "Avatar is required", (value) => {
+    return value instanceof File || (typeof value === "string" && value.length > 0);
+  }),
   ticketPrice: yup.string().required("Ticket selection is required"),
   ticketQuantity: yup.string().required("Ticket quantity is required"),
 });
@@ -54,11 +56,13 @@ export default function Home() {
     const file = event.target.files[0];
     if (file) {
       setAvatarFile(URL.createObjectURL(file));
+      setValue("avatar", file, { shouldValidate: true });
     }
   };
 
   const onSubmit = (data) => {
     if (!avatarFile) {
+      alert("Please upload an avatar.");
       return;
     }
     const barcodeValue = generateRandomBarcode();
@@ -83,11 +87,11 @@ export default function Home() {
         <title>Tickets</title>
         <link rel="icon" href="/ticket-icon.png" />
       </Head>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-blue-950 p-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0f29] p-4">
         {!ticket && (
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="bg-blue-800 p-6 rounded-lg shadow-md w-full max-w-md border border-blue-500"
+            className="bg-[#16213e] p-6 rounded-lg shadow-md w-full max-w-md border border-blue-400"
           >
             <h2 className="text-xl font-bold mb-4 text-white">Conference Ticket Form</h2>
             <label className="block mb-2 text-white">Full Name</label>
@@ -123,7 +127,7 @@ export default function Home() {
                   className={`p-2 border rounded text-white ${selectedPrice === price ? 'bg-blue-500' : 'bg-blue-300'}`}
                   onClick={() => {
                     setSelectedPrice(price);
-                    setValue("ticketPrice", price);
+                    setValue("ticketPrice", price, { shouldValidate: true });
                   }}
                 >
                   {price}
@@ -150,7 +154,7 @@ export default function Home() {
         )}
 
         {ticket && (
-          <div className="mt-6 bg-blue-800 p-4 rounded-lg shadow-md text-center border border-blue-500">
+          <div className="mt-6 bg-[#16213e] p-4 rounded-lg shadow-md text-center border border-blue-400">
             <h3 className="text-lg font-bold text-white">Your Ticket</h3>
             <img src={ticket.avatar} alt="Avatar" className="w-24 h-24 rounded-full mx-auto mt-2" />
             <p className="mt-2 font-semibold text-white">{ticket.fullName}</p>
